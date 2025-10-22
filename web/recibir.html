@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recibir Mensajes</title>
+  <style>
+    body { font-family: system-ui; background: #f9fafb; padding: 2rem; }
+    h1 { color: #22543d; }
+    pre {
+      background: #fff; padding: 1rem; border-radius: 8px;
+      height: 300px; overflow-y: auto;
+      border: 1px solid #e2e8f0;
+    }
+    button {
+      margin-top: 1rem; padding: 8px 16px;
+      background: #38a169; color: white;
+      border: none; border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover { background: #2f855a; }
+  </style>
+</head>
+<body>
+  <h1>📡 Mensajes Recibidos</h1>
+  <p>Este cliente consulta <code>consultar_respuesta.php</code> cada 2 segundos.</p>
+
+  <pre id="contenido">Esperando datos...</pre>
+  <button id="btnLimpiar">Limpiar almacenamiento</button>
+
+  <script>
+    const servidor = "https://obliged-sole-practice1-0909c43c.koyeb.app"; // Cambia por tu dominio o localhost
+    const contenedor = document.getElementById("contenido");
+
+    async function actualizar() {
+      const res = await fetch(`${servidor}/consultar_respuesta.php`);
+      const texto = await res.text();
+      contenedor.textContent = texto.trim() || "(sin datos)";
+    }
+
+    // Consultar cada 2 segundos
+    setInterval(actualizar, 2000);
+    actualizar();
+
+    // Botón opcional para limpiar
+    document.getElementById("btnLimpiar").addEventListener("click", async () => {
+      await fetch(`${servidor}/limpiar.php`);
+      contenedor.textContent = "(vaciado manualmente)";
+    });
+  </script>
+</body>
+</html>
