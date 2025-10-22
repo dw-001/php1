@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cliente Web - Comunicación con Servidor PHP</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f2f4f8;
+      padding: 2rem;
+    }
+    h1 { color: #2a4365; }
+    button {
+      padding: 10px 20px;
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2b6cb0;
+    }
+    pre {
+      background: #edf2f7;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Cliente Web - Comunicación vía storage.txt</h1>
+
+  <p>Este cliente simula un navegador que se comunica con tu servidor PHP.</p>
+
+  <label for="accion">Acción a solicitar:</label>
+  <input type="text" id="accion" value="obtener_datos" style="margin-right:1rem; padding:5px;">
+  <button id="btnEnviar">Enviar Petición</button>
+
+  <h3>📨 Resultado:</h3>
+  <pre id="resultado">Esperando acción...</pre>
+
+  <script>
+    const servidor = "https://tuservidorpublico.com"; // Cambia esta URL a tu dominio real
+    const clienteId = "cliente_web_001";
+    let peticionId = null;
+    let intervalo = null;
+
+    const resultado = document.getElementById("resultado");
+    const btn = document.getElementById("btnEnviar");
+
+    // Enviar una nueva petición
+    btn.addEventListener("click", async () => {
+      const accion = document.getElementById("accion").value.trim();
+      resultado.textContent = "Enviando petición...";
+
+      try {
+        const res = await fetch(`${servidor}/recibir_peticion.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cliente_id: clienteId,
+            accion: accion
+          })
+        });
+
+        const data = await res.json();
+        peticionId = data.peticion_id;
+        resultado.textContent = `✅ Petición enviada correctamente.\nID: ${peticionId}\nEsperando respuesta...`;
+
+        iniciarConsulta();
+      } catch (err) {
+        resultado.textContent = "❌ Error al enviar la petición: " + err;
+      }
+    });
+
+    // Consultar si hay respuesta
+    function iniciarConsulta() {
+      if (intervalo) clearInterval(intervalo);
+
+      intervalo = setInterval(async () => {
+        try {
+          const res = await fetch(`${servidor}/consultar_respuesta.php?cliente_id=${clienteId}`);
+          const data = await res.json();
+
+          if (Array.isArray(data) && data.length > 0) {
+            const ultima = data[data.length - 1];
+            resultado.textContent = `📬 Respuesta recibida:\n\n${JSON.stringify(ultima, null, 2)}`;
+            clearInterval(intervalo);
+          } else {
+            console.log("⏳ Aún sin respuesta...");
+          }
+        } catch (err) {
+          console.error("Error al consultar respuesta:", err);
+        }
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
